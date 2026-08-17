@@ -19,6 +19,7 @@ import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import quote
 from urllib.parse import urlsplit
 
 
@@ -107,7 +108,28 @@ def move_to_trash(path: str) -> None:
         if code:
             raise OSError("SHFileOperation failed (code %d)" % code)
         return
-    raise OSError("移到废纸篓仅支持 macOS / Windows")
+    if os.name == "posix":
+        # XDG Trash spec: keep the action reversible on Linux/Unix desktops.
+        trash_root = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")) / "Trash"
+        files_dir = trash_root / "files"
+        info_dir = trash_root / "info"
+        files_dir.mkdir(parents=True, exist_ok=True)
+        info_dir.mkdir(parents=True, exist_ok=True)
+        name = Path(path).name or "item"
+        destination = files_dir / name
+        counter = 1
+        while destination.exists():
+            destination = files_dir / f"{name}.{counter}"
+            counter += 1
+        info_name = destination.name + ".trashinfo"
+        deletion_date = time.strftime("%Y-%m-%dT%H:%M:%S")
+        info = "[Trash Info]\\nPath=%s\\nDeletionDate=%s\\n" % (
+            quote(os.path.abspath(path), safe="/"), deletion_date
+        )
+        shutil.move(path, destination)
+        (info_dir / info_name).write_text(info, encoding="utf-8")
+        return
+    raise OSError("当前平台没有可用的回收站适配器")
 
 
 def hard_delete(path: str) -> None:
@@ -128,8 +150,10 @@ def open_in_file_manager(path: str) -> None:
                 raise OSError((result.stderr or fallback.stderr or "open 失败").strip())
     elif sys.platform.startswith("win"):
         subprocess.run(["explorer", target])
+    elif os.name == "posix":
+        subprocess.run(["xdg-open", target])
     else:
-        raise OSError("打开文件夹仅支持 macOS / Windows")
+        raise OSError("当前平台没有可用的文件管理器适配器")
 
 
 class Handler(BaseHTTPRequestHandler):

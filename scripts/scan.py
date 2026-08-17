@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only storage scanner (macOS + Windows).
+"""Read-only storage scanner with a shared cross-platform data shape.
 
 Collects disk usage, system info, and per-directory size breakdowns for the
 hot spots that typically eat disk, and emits one JSON blob to stdout for Claude
@@ -242,7 +242,7 @@ def scan_macos():
 
 
 # ======================================================================
-# Windows  (UNTESTED on this build — stdlib only: os, shutil, ctypes)
+# Windows / generic Unix adapters (stdlib only)
 # ======================================================================
 def dir_size_bytes(path):
     """Recursive size in bytes via os.scandir. Skips symlinks and unreadable."""
@@ -371,6 +371,93 @@ def scan_windows():
     return system_info_windows(), groups
 
 
+def scandir_children_posix(path, min_kb=51200, limit=40, skip_names=()):
+    """Size immediate children on Linux and other Unix-like systems."""
+    if not path or not os.path.isdir(path):
+        return []
+    results = []
+    try:
+        entries = sorted(os.scandir(path), key=lambda entry: entry.name)
+    except (PermissionError, OSError):
+        DENIED_PATHS.append(path)
+        return [{"name": "(permission denied)", "path": path,
+                 "size_kb": 0, "size_h": "?", "denied": True}]
+    for entry in entries:
+        try:
+            if entry.name in skip_names:
+                continue
+            if entry.is_symlink():
+                continue
+            kb = (entry.stat(follow_symlinks=False).st_size
+                  if entry.is_file(follow_symlinks=False)
+                  else dir_size_bytes(entry.path)) // 1024
+        except (PermissionError, OSError):
+            DENIED_PATHS.append(entry.path)
+            continue
+        if kb < min_kb:
+            continue
+        results.append({"name": entry.name, "path": entry.path,
+                        "size_kb": kb, "size_h": human(kb)})
+    results.sort(key=lambda item: item["size_kb"], reverse=True)
+    return results[:limit]
+
+
+def system_info_posix():
+    """Collect portable Unix metadata without requiring external tools."""
+    import platform
+
+    root = os.path.abspath(os.sep)
+    total = used = free = "?"
+    try:
+        t, u, f = shutil.disk_usage(root)
+        total, used, free = human(t // 1024), human(u // 1024), human(f // 1024)
+    except OSError:
+        pass
+    return {
+        "os": platform.system() + " " + platform.release(),
+        "build": platform.version(),
+        "arch": platform.machine(),
+        "user": os.environ.get("USER", ""),
+        "home": HOME,
+        "disk_total": total,
+        "disk_used": used,
+        "disk_free": free,
+        "filesystem": "unknown",
+        "purgeable": "",
+        "disk_name": root,
+        "disks": [{"name": root, "total": total, "used": used, "free": free}],
+    }
+
+
+def scan_posix():
+    """Portable Linux/Unix scan; detailed classification stays in the agent."""
+    home = HOME
+    home_parent = os.path.dirname(home)
+    targets = [
+        ("root", os.sep, 0),
+        ("user_homes", "/home" if os.path.isdir("/home") else home_parent, 51200),
+        ("home", home, 0),
+        ("downloads", os.path.join(home, "Downloads"), 51200),
+        ("temp", os.environ.get("TMPDIR", "/tmp"), 51200),
+        ("appdata_local", os.path.join(home, ".local", "share"), 51200),
+        ("appdata_roaming", os.path.join(home, ".config"), 51200),
+        ("dev_caches", os.path.join(home, ".cache"), 51200),
+    ]
+    groups = {}
+    for key, path, floor in targets:
+        if key == "root":
+            groups[key] = scandir_children_posix(
+                path, min_kb=0, limit=10000,
+                skip_names=("proc", "sys", "dev", "run"),
+            )
+        elif key == "dev_caches":
+            groups[key] = scandir_children_posix(path, min_kb=floor)
+        else:
+            groups[key] = scandir_children_posix(path, min_kb=floor,
+                                                  limit=10000 if key == "home" else 40)
+    return system_info_posix(), groups
+
+
 # ======================================================================
 def main():
     started = time.time()
@@ -378,9 +465,11 @@ def main():
         system, groups = scan_macos()
     elif sys.platform.startswith("win"):
         system, groups = scan_windows()
+    elif os.name == "posix":
+        system, groups = scan_posix()
     else:
         print(json.dumps({"error": "unsupported_platform", "platform": sys.platform,
-                          "message": "scan.py supports macOS and Windows only."},
+                          "message": "scan.py requires Python 3 on a desktop operating system."},
                          ensure_ascii=False))
         return
     data = {

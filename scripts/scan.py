@@ -22,10 +22,15 @@ import os
 import shutil
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 HOME = os.path.expanduser("~")
 DENIED_PATHS = []
+SCAN_WARNINGS = []
 STORAGE_UNIT_VERSION = "decimal-si-v1"
+DU_CHILD_TIMEOUT = 20
+DU_SIZE_TIMEOUT = 30
+DU_ROOT_CHILD_TIMEOUT = 8
 
 
 def human(kb):
@@ -52,38 +57,58 @@ def run(cmd, timeout=180):
             if match:
                 DENIED_PATHS.append(match.group(1))
         return completed.stdout
-    except Exception:
+    except subprocess.TimeoutExpired:
+        SCAN_WARNINGS.append({
+            "type": "timeout",
+            "command": " ".join(cmd),
+            "timeout_seconds": timeout,
+        })
+        return ""
+    except (OSError, subprocess.SubprocessError) as error:
+        SCAN_WARNINGS.append({
+            "type": "command_error",
+            "command": " ".join(cmd),
+            "message": str(error),
+        })
         return ""
 
 
-def du_children(path, min_kb=51200, limit=40, same_filesystem=False):
-    """Size every immediate child of `path` via du, sorted desc. macOS."""
+def _du_child(path, name, same_filesystem=False, timeout=DU_CHILD_TIMEOUT):
+    child = os.path.join(path, name)
+    if os.path.islink(child):
+        return None
+    command = ["du"]
+    if same_filesystem:
+        command.append("-x")
+    command.extend(["-sk", child])
+    out = run(command, timeout=timeout)
+    match = re.match(r"\s*(\d+)", out)
+    if not match:
+        return None
+    kb = int(match.group(1))
+    return {"name": name, "path": child, "size_kb": kb, "size_h": human(kb)}
+
+
+def du_children(path, min_kb=51200, limit=40, same_filesystem=False,
+                skip_names=(), child_timeout=DU_CHILD_TIMEOUT):
+    """Size immediate children concurrently with bounded per-child latency."""
     if not os.path.isdir(path):
         return []
-    results = []
     try:
-        entries = sorted(os.listdir(path))
+        entries = [name for name in sorted(os.listdir(path)) if name not in (".", "..")]
     except PermissionError:
         return [{"name": "(permission denied)", "path": path,
                  "size_kb": 0, "size_h": "?", "denied": True}]
-    for name in entries:
-        if name in (".", ".."):
-            continue
-        child = os.path.join(path, name)
-        if os.path.islink(child):
-            continue
-        command = ["du"]
-        if same_filesystem:
-            command.append("-x")
-        command.extend(["-sk", child])
-        out = run(command, timeout=120)
-        m = re.match(r"\s*(\d+)", out)
-        if not m:
-            continue
-        kb = int(m.group(1))
-        if kb < min_kb:
-            continue
-        results.append({"name": name, "path": child, "size_kb": kb, "size_h": human(kb)})
+    entries = [name for name in entries if name not in set(skip_names)]
+    if not entries:
+        return []
+    workers = min(4, len(entries))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(
+            lambda name: _du_child(path, name, same_filesystem, child_timeout),
+            entries,
+        ))
+    results = [item for item in results if item and item["size_kb"] >= min_kb]
     results.sort(key=lambda r: r["size_kb"], reverse=True)
     return results[:limit]
 
@@ -94,7 +119,7 @@ def du_size(path, same_filesystem=True):
     if same_filesystem:
         command.append("-x")
     command.extend(["-sk", path])
-    out = run(command, timeout=180)
+    out = run(command, timeout=DU_SIZE_TIMEOUT)
     match = re.match(r"\s*(\d+)", out)
     return int(match.group(1)) if match else 0
 
@@ -110,34 +135,39 @@ def macos_system_volume_size():
     system_path = "/System"
     if not os.path.isdir(system_path):
         return 0
-    total_kb = 0
-    try:
-        system_children = sorted(os.listdir(system_path))
-    except PermissionError:
-        return 0
-    for name in system_children:
-        child = os.path.join(system_path, name)
-        if name != "Volumes":
-            total_kb += du_size(child)
-            continue
-        try:
-            volume_children = sorted(os.listdir(child))
-        except PermissionError:
-            continue
-        for volume_name in volume_children:
-            if volume_name == "Data":
-                continue
-            total_kb += du_size(os.path.join(child, volume_name))
-    return total_kb
+    system_children = du_children(
+        system_path, min_kb=0, limit=10000, same_filesystem=True,
+        skip_names=("Volumes",),
+    )
+    volume_children = du_children(
+        os.path.join(system_path, "Volumes"), min_kb=0, limit=10000,
+        same_filesystem=True, skip_names=("Data",),
+    )
+    return sum(item.get("size_kb", 0) for item in system_children + volume_children)
 
 
 def macos_root_entries():
-    entries = du_children("/", min_kb=0, limit=10000, same_filesystem=True)
+    entries = du_children(
+        "/", min_kb=0, limit=10000, same_filesystem=True,
+        skip_names=("Applications", "Library", "System", "Users"),
+        child_timeout=DU_ROOT_CHILD_TIMEOUT,
+    )
+    # A direct recursive walk of /Library is often blocked by privacy rules;
+    # sum its accessible children under the short root budget instead.
+    library_children = du_children(
+        "/Library", min_kb=0, limit=10000, same_filesystem=True,
+        child_timeout=DU_ROOT_CHILD_TIMEOUT,
+    )
+    library_size_kb = sum(item.get("size_kb", 0) for item in library_children)
+    if library_size_kb:
+        entries.append({"name": "Library", "path": "/Library",
+                        "size_kb": library_size_kb,
+                        "size_h": human(library_size_kb)})
     system_size_kb = macos_system_volume_size()
-    for entry in entries:
-        if entry.get("name") == "System" and system_size_kb > 0:
-            entry["size_kb"] = system_size_kb
-            entry["size_h"] = human(system_size_kb)
+    if system_size_kb > 0:
+        entries.append({"name": "System", "path": "/System",
+                        "size_kb": system_size_kb,
+                        "size_h": human(system_size_kb)})
     entries.sort(key=lambda r: r["size_kb"], reverse=True)
     return entries
 
@@ -174,7 +204,7 @@ def dev_caches_macos():
         path = os.path.expanduser(p)
         if not os.path.isdir(path):
             continue
-        out = run(["du", "-sk", path], timeout=180)
+        out = run(["du", "-sk", path], timeout=DU_SIZE_TIMEOUT)
         m = re.match(r"\s*(\d+)", out)
         if not m:
             continue
@@ -226,18 +256,106 @@ def system_info_macos():
 
 def scan_macos():
     system = system_info_macos()
-    groups = {}
-    for key, path, floor in MAC_TARGETS:
+    def scan_group(target):
+        key, path, floor = target
         if key == "dev_caches":
-            groups[key] = dev_caches_macos()
+            return key, dev_caches_macos()
         elif key == "root":
-            groups[key] = macos_root_entries()
+            return key, macos_root_entries()
         elif key == "home":
             # Keep every immediate child so the user-home total is an exact
             # visible sum rather than a lower bound made from large folders.
-            groups[key] = du_children(path, min_kb=0, limit=10000)
+            # Library is measured once below and inserted back into this list;
+            # skipping it here avoids a second full recursive walk.
+            SCAN_WARNINGS.append({
+                "type": "deferred_group",
+                "path": os.path.join(path, "Library"),
+                "message": "由 library 分组汇总，避免重复扫描",
+            })
+            entries = du_children(
+                path, min_kb=0, limit=10000, skip_names=("Library",),
+                child_timeout=15,
+            )
+            return key, entries
+        elif key == "user_homes":
+            # The active HOME is assembled from the detailed home/library
+            # groups below; scanning it again through /Users is redundant and
+            # is particularly slow under macOS privacy restrictions.
+            SCAN_WARNINGS.append({
+                "type": "deferred_group",
+                "path": HOME,
+                "message": "由 home 分组汇总，避免重复扫描",
+            })
+            entries = du_children(
+                path, min_kb=floor, skip_names=(os.path.basename(HOME),),
+                child_timeout=DU_ROOT_CHILD_TIMEOUT,
+            )
+            return key, entries
+        elif key == "library":
+            # Mobile Documents is a privacy-protected firmlink on many macOS
+            # installations. It is represented by the accounting remainder
+            # instead of blocking the whole snapshot.
+            mobile_documents = os.path.join(path, "Mobile Documents")
+            SCAN_WARNINGS.append({
+                "type": "deferred_group",
+                "path": mobile_documents,
+                "message": "macOS 隐私保护路径，计入权限/未展开差额",
+            })
+            entries = du_children(
+                path, min_kb=floor, skip_names=("Containers", "Mobile Documents"),
+                child_timeout=12,
+            )
+            return key, entries
+        elif key == "applications":
+            return key, du_children(path, min_kb=0, limit=10000, child_timeout=15)
+        elif key == "containers":
+            return key, du_children(path, min_kb=floor, child_timeout=8)
         else:
-            groups[key] = du_children(path, min_kb=floor)
+            return key, du_children(path, min_kb=floor)
+
+    # These groups are independent. Running a few bounded scans in parallel
+    # keeps the skill responsive without creating a process per file.
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        groups = dict(pool.map(scan_group, MAC_TARGETS))
+
+    containers_visible = sum(
+        item.get("size_kb", 0) for item in groups.get("containers", [])
+    )
+    if containers_visible:
+        groups["library"].append({
+            "name": "Containers", "path": os.path.join(HOME, "Library/Containers"),
+            "size_kb": containers_visible, "size_h": human(containers_visible),
+        })
+    library_visible = sum(item.get("size_kb", 0) for item in groups.get("library", []))
+    if library_visible:
+        groups["home"].append({
+            "name": "Library", "path": os.path.join(HOME, "Library"),
+            "size_kb": library_visible, "size_h": human(library_visible),
+        })
+    groups["home"].sort(key=lambda item: item.get("size_kb", 0), reverse=True)
+
+    home_visible = sum(item.get("size_kb", 0) for item in groups.get("home", []))
+    if home_visible:
+        groups["user_homes"].append({
+            "name": os.path.basename(HOME), "path": HOME,
+            "size_kb": home_visible, "size_h": human(home_visible),
+        })
+    groups["user_homes"].sort(key=lambda item: item.get("size_kb", 0), reverse=True)
+
+    root = groups.setdefault("root", [])
+    root_by_name = {item.get("name"): item for item in root}
+    users_visible = sum(item.get("size_kb", 0) for item in groups.get("user_homes", []))
+    applications_visible = sum(item.get("size_kb", 0) for item in groups.get("applications", []))
+    for name, path, size_kb in (
+        ("Users", "/Users", users_visible),
+        ("Applications", "/Applications", applications_visible),
+    ):
+        if size_kb:
+            root_by_name[name] = {
+                "name": name, "path": path, "size_kb": size_kb,
+                "size_h": human(size_kb),
+            }
+    groups["root"] = sorted(root_by_name.values(), key=lambda item: item.get("size_kb", 0), reverse=True)
     return system, groups
 
 
@@ -483,6 +601,7 @@ def main():
         ),
         "scan_seconds": round(time.time() - started, 1),
         "denied": sorted(set(DENIED_PATHS)),
+        "warnings": SCAN_WARNINGS,
     }
     print(json.dumps(data, ensure_ascii=False, indent=2))
 

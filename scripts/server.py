@@ -33,12 +33,36 @@ OPEN_ALLOW: set[str] = set()
 
 
 def expand(path: str) -> str:
-    return os.path.realpath(os.path.expanduser(path))
+    # Do not resolve the final component here: cleanup allowlisting must be
+    # able to see and reject symbolic links before an action is authorized.
+    return os.path.abspath(os.path.expanduser(path))
 
 
 def in_allowed_root(path: str, mode: str) -> bool:
-    roots = (HOME, "/Applications") if mode == "open" else (HOME,)
-    return any(path == root or path.startswith(root + os.sep) for root in roots)
+    roots = [HOME]
+    if mode == "open":
+        if sys.platform == "darwin":
+            roots.append("/Applications")
+        elif sys.platform.startswith("win"):
+            roots.extend(filter(None, (
+                os.environ.get("ProgramFiles"),
+                os.environ.get("ProgramFiles(x86)"),
+                os.environ.get("ProgramData"),
+            )))
+        elif os.name == "posix":
+            roots.extend(("/opt", "/usr/local"))
+    normalized_roots = [os.path.realpath(root) for root in roots if root]
+    resolved_path = os.path.realpath(path)
+    if mode != "open" and resolved_path == HOME:
+        return False
+    return any(
+        resolved_path == root or resolved_path.startswith(root + os.sep)
+        for root in normalized_roots
+    )
+
+
+def verified_action_path(path: str) -> bool:
+    return bool(path and os.path.exists(path) and not os.path.islink(path))
 
 
 def load_report(workspace: Path) -> tuple[Path, Path]:
@@ -52,14 +76,20 @@ def load_report(workspace: Path) -> tuple[Path, Path]:
     trash_allow: set[str] = set()
     open_allow: set[str] = set()
     for item in DATA.get("green", []):
+        if item.get("verified") is not True:
+            continue
         for path in item.get("trash_paths") or []:
             resolved = expand(path)
+            if not verified_action_path(resolved):
+                continue
             rm_allow.add(resolved)
             trash_allow.add(resolved)
             open_allow.add(resolved)
     for item in DATA.get("yellow", []):
         for path in item.get("trash_paths") or []:
             resolved = expand(path)
+            if item.get("verified") is not True or not verified_action_path(resolved):
+                continue
             trash_allow.add(resolved)
             open_allow.add(resolved)
         if item.get("path") and os.path.exists(expand(item["path"])):
@@ -208,6 +238,9 @@ class Handler(BaseHTTPRequestHandler):
                 return
             if not in_allowed_root(path, mode):
                 self.send_body(403, json.dumps({"ok": False, "error": "路径越界：%s" % raw_path}), "application/json")
+                return
+            if mode != "open" and os.path.islink(path):
+                self.send_body(403, json.dumps({"ok": False, "error": "拒绝操作符号链接：%s" % raw_path}), "application/json")
                 return
             try:
                 if mode == "open":

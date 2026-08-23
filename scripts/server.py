@@ -15,10 +15,12 @@ import secrets
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.request import urlopen
 from urllib.parse import quote
 from urllib.parse import urlsplit
 
@@ -30,6 +32,19 @@ HTML = ""
 RM_ALLOW: set[str] = set()
 TRASH_ALLOW: set[str] = set()
 OPEN_ALLOW: set[str] = set()
+
+
+def open_browser_when_ready(url: str, timeout: float = 5.0) -> None:
+    """Open the report only after the local server answers successfully."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with urlopen(url, timeout=0.5) as response:
+                if response.status == 200:
+                    webbrowser.open(url)
+                    return
+        except OSError:
+            time.sleep(0.05)
 
 
 def expand(path: str) -> str:
@@ -271,7 +286,11 @@ def main() -> int:
     print("绿灯可直接删 %d 项；可移到废纸篓 %d 项；打开位置 %d 项" % (len(RM_ALLOW), len(TRASH_ALLOW), len(OPEN_ALLOW)))
     print("页面按钮需要逐次确认；服务停止后按钮失效。报告文件：%s" % report_path)
     if not args.no_browser:
-        webbrowser.open(url)
+        threading.Thread(
+            target=open_browser_when_ready,
+            args=(url,),
+            daemon=True,
+        ).start()
     try:
         server.serve_forever()
     except KeyboardInterrupt:

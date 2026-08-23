@@ -1,6 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
+from unittest.mock import MagicMock, patch
 import json
 import sys
 
@@ -12,6 +13,18 @@ import server  # noqa: E402
 
 
 class ServerAllowlistTests(TestCase):
+    def test_browser_opens_only_after_report_returns_200(self):
+        response = MagicMock()
+        response.status = 200
+        response.__enter__.return_value = response
+
+        with patch.object(server, "urlopen", return_value=response) as request:
+            with patch.object(server.webbrowser, "open") as open_browser:
+                server.open_browser_when_ready("http://127.0.0.1:43210/")
+
+        request.assert_called_once_with("http://127.0.0.1:43210/", timeout=0.5)
+        open_browser.assert_called_once_with("http://127.0.0.1:43210/")
+
     def test_only_current_verified_non_symlink_cache_is_delete_allowed(self):
         with TemporaryDirectory() as temp:
             workspace = Path(temp)

@@ -177,11 +177,13 @@ function drawDiverging(svg,sd){
   data.forEach((d,i)=>{const v=n(d.delta_gb),y=y0+i*row,len=scale(v),barLen=Math.max(len,4),positive=v>=0,x=positive?x0:x0-len;
     svgText(svg,{x:18,y:y+5,'font-size':14,'font-weight':700,fill:INK},String(d.name).slice(0,18));
     const divergeDuration=.35+1.75*Math.pow(Math.min(barLen/160,1),.62),bar=svgEl(svg,'rect',{x:positive?x:x-barLen+len,y:y-10,width:barLen,height:20,rx:10,fill:positive?BAD:SAFE,class:'reveal diverge-bar '+(positive?'positive':'negative'),style:'--diverge-duration:'+divergeDuration.toFixed(2)+'s;animation-delay:'+(i*.24)+'s'});tip(bar,d.path+' · '+(v>0?'+':'')+v.toFixed(1)+' GB');
-    const label=(v>0?'+':'')+v.toFixed(1)+' GB',labelAbove=barLen>=80;
-    const rawValueX=positive?x+barLen+12:x-12;
-    const valueX=labelAbove?x+barLen/2:Math.max(60,Math.min(455,rawValueX));
-    const labelY=labelAbove?y-18:y+5;
-    svgText(svg,{x:valueX,y:labelY,'text-anchor':labelAbove?'middle':positive?'start':'end','font-size':16,'font-weight':800,fill:positive?BAD:SAFE},label);
+    const label=(v>0?'+':'')+v.toFixed(1)+' GB';
+    // Positive values sit to the right of their bar; negative values sit to
+    // the left. Scale the label with the rendered bar while keeping it legible.
+    const valueX=positive?x+barLen+12:x-12;
+    const valueAnchor=positive?'start':'end';
+    const valueFontSize=(10.5+3.5*Math.pow(Math.min(barLen/160,1),.62)).toFixed(1);
+    svgText(svg,{x:valueX,y:y+5,'text-anchor':valueAnchor,'font-size':valueFontSize,'font-weight':800,fill:positive?BAD:SAFE},label);
   });
 }
 function drawHistory(svg,history,totalCapacity){

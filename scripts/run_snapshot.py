@@ -560,11 +560,12 @@ def write_report(path: Path, current: dict, previous: dict | None, delta: dict) 
             f"<td class='{delta_class}'>{fmt_gb(item['delta_gb'])}</td>"
             "</tr>"
         )
+    empty_row = '<tr><td colspan="6">暂无显著变化</td></tr>'
     table = (
         "<p>未发现显著变化的路径不列出；阈值为约 50 MB。</p>"
         "<table><thead><tr><th>目录</th><th>扫描组</th><th>路径</th>"
         "<th>上次</th><th>本次</th><th>变化</th></tr></thead>"
-        f"<tbody>{''.join(rows) or '<tr><td colspan=\"6\">暂无显著变化</td></tr>'}</tbody></table>"
+        f"<tbody>{''.join(rows) or empty_row}</tbody></table>"
     )
     page = f"""<!doctype html>
 <meta charset="utf-8">

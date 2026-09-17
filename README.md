@@ -89,6 +89,8 @@ Lieflat Charts 本机来源目录附带 PolyForm Noncommercial License 1.0.0。�
 
 清理清单不是“全盘都能删”的列表，而是把确实存在处理决策的项目分成三类：可自动清理、需人工判断、谨慎清理。每项显示总占用、比例条、内容说明和适合的下一步。服务模式下，纯缓存可以移到废纸篓；需要判断的项目优先打开位置；系统文件、应用核心数据和不明确项目不会被后台直接删除。
 
+针对 Codex 自己生成或管理的内容，使用同仓库内的 [Codex 存储清理子 skill](subskills/codex-storage-cleanup/SKILL.md)。它沿用本报告的视觉方案，但把内容收窄为 Codex 用户、Codex 根目录、归档会话、应用缓存、临时文件和工作区内已确认的旧构建产物。
+
 ## 怎么用
 
 ### 1. 在 Codex 中使用
@@ -164,10 +166,10 @@ $WORKSPACE/
 
 ## 开发与维护
 
-源代码和独立 skill：
+源代码与子 skill：
 
 ~~~text
-storage-cleanup-visual/
+ storage-observatory/
 ├── SKILL.md
 ├── scripts/run_snapshot.py
 ├── scripts/scan.py
@@ -175,7 +177,12 @@ storage-cleanup-visual/
 ├── scripts/server.py
 ├── references/macos.md
 ├── references/windows.md
-└── references/linux.md
+├── references/linux.md
+└── subskills/codex-storage-cleanup/
+    ├── SKILL.md
+    ├── agents/openai.yaml
+    ├── references/codex-storage-cleanup-sop.md
+    └── scripts/
 ~~~
 
 当前是独立调试工作区中的 beta 版本，尚未建立 Git fork、远端或发布包。修改报告时应优先保持以下约定：一次启用一次快照；历史趋势最多六点；图表进入可视区域后再播放且不重复播放；保留 prefers-reduced-motion 降级；保持 #43593B 表示好的变化、#F5572F 表示不好的变化，中文说明文字使用中性黑色。

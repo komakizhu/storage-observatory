@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Local scan results and generated reports may contain private paths and sizes.
+.storage-observatory-workspace/
+.codex-cleanup-workspace/
+work/
+outputs/

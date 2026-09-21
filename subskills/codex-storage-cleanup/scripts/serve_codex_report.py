@@ -17,6 +17,8 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import quote, urlsplit
 from urllib.request import urlopen
+from build_evidence import inspect_artifact
+from scan_codex import open_handle_status
 
 
 TOKEN = secrets.token_urlsafe(24)
@@ -25,6 +27,27 @@ HTML = ""
 USER_HOMES: set[str] = set()
 TRASH_ALLOW: set[str] = set()
 OPEN_ALLOW: set[str] = set()
+
+
+def revalidate_build(path: str) -> None:
+    item = next((item for item in DATA.get("items", []) if item.get("path") == path), {})
+    if item.get("review_priority") != "delete-old-build":
+        return
+    # Do not reuse manifests cached when a previous action was checked.
+    from build_evidence import toml
+    toml.cache_clear()
+    current = inspect_artifact(path)
+    keeper_path = item.get("retained_path", "")
+    if not keeper_path or keeper_path == path or not verified_path(keeper_path, "open"):
+        raise ValueError("最新保留目录已失效，请重新扫描")
+    keeper = inspect_artifact(keeper_path)
+    if current["project_key"] != keeper["project_key"] or not keeper["latest_output_time"]:
+        raise ValueError("保留目录不再属于同项目或缺少已完成产物")
+    if current["artifact_type"] == keeper["artifact_type"] and current["latest_output_time"] > keeper["latest_output_time"]:
+        raise ValueError("该目录产生了更新的构建，请重新扫描")
+    active, note = open_handle_status(Path(path))
+    if active is not False:
+        raise ValueError(note)
 
 
 def expand(path: str) -> str:
@@ -226,6 +249,7 @@ class Handler(BaseHTTPRequestHandler):
                 if mode == "open":
                     open_in_file_manager(path)
                 else:
+                    revalidate_build(path)
                     move_to_trash(path)
                 done.append(raw_path)
             except Exception as error:

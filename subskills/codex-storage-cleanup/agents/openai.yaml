@@ -1,4 +1,4 @@
 interface:
   display_name: "Codex 全面存储清理"
-  short_description: "跨用户跨平台识别、备份并安全清理 Codex 可删除数据"
-  default_prompt: "Use $codex-storage-cleanup to inspect Codex data for all readable users on macOS and Windows, propose safe cleanup candidates, and remove only explicitly approved paths."
+  short_description: "在 Codex 中对比旧构建清理容量，默认保留最新一份与下载缓存"
+  default_prompt: "Use $codex-storage-cleanup to inspect Codex storage and report recommendations inline in Codex. Verify rebuildable outputs from source and compare space recoverable by keeping the latest build per project versus removing all verified builds. Keep download caches by default, report chat history and image caches or outputs separately, and remove only authorized exact paths."

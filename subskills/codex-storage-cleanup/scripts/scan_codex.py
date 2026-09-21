@@ -23,6 +23,8 @@ import subprocess
 import sys
 import time
 from typing import Any, Iterable
+from build_evidence import cargo_output, decide_builds
+from chat_report import option_totals, render_chat_report
 
 try:
     import pwd
@@ -45,6 +47,20 @@ BUILD_DIR_NAMES = {
     "node_modules", ".pnpm-store", "__pycache__", ".pytest_cache", ".cache",
     ".venv", "venv", "env",
 }
+DOWNLOAD_DIR_NAMES = {"node_modules", ".pnpm-store", ".venv", "venv", "env"}
+
+
+def is_download_cache_path(path: Path) -> bool:
+    """Recognize dependency downloads without treating every project cache as one."""
+    parts = [part.casefold() for part in path.parts]
+    for anchor in ("cargo-home", ".cargo"):
+        if anchor not in parts:
+            continue
+        start = parts.index(anchor) + 1
+        if any(part in {"registry", "git"} for part in parts[start:]):
+            return True
+    return False
+
 PRUNE_DIR_NAMES = {
     ".git", ".hg", ".svn", ".idea", ".vscode", ".superpowers",
     ".codex", "__MACOSX",
@@ -211,6 +227,8 @@ def open_handle_status(path: Path, timeout: int = 4) -> tuple[bool | None, str]:
     if len(lines) > 1:
         sample = "；".join(line.split()[0] for line in lines[1:4])
         return True, f"发现程序正在使用这个目录：{sample}"
+    if result.returncode not in (0, 1) or result.stderr.strip():
+        return None, "使用状态检查不完整：" + result.stderr.strip()[:200]
     return False, "没有发现程序正在使用这个目录"
 
 
@@ -317,7 +335,8 @@ def root_candidates(home: Path) -> list[tuple[Path, str, str]]:
     if os.name == "nt":
         candidates = [
             (home / ".codex", "用户的 Codex 文件夹", "codex"),
-            (home / "Documents" / "Codex", "Codex 工作区文件夹", "documents"),
+            (home / "Documents" / "Codex", "Codex 工作区探测目录（来源待核实）", "documents"),
+            (home / "Documents" / "ChatGPT", "ChatGPT 工作区探测目录（来源待核实）", "documents"),
             (home / "Documents" / "codex", "Codex 工作区文件夹", "documents"),
             (home / "AppData" / "Local" / "Codex", "Codex 应用数据文件夹", "app-data"),
             (home / "AppData" / "Roaming" / "Codex", "Codex 应用数据文件夹", "app-data"),
@@ -327,7 +346,8 @@ def root_candidates(home: Path) -> list[tuple[Path, str, str]]:
     else:
         candidates = [
             (home / ".codex", "用户的 Codex 文件夹", "codex"),
-            (home / "Documents" / "Codex", "Codex 工作区文件夹", "documents"),
+            (home / "Documents" / "Codex", "Codex 工作区探测目录（来源待核实）", "documents"),
+            (home / "Documents" / "ChatGPT", "ChatGPT 工作区探测目录（来源待核实）", "documents"),
             (home / "Documents" / "codex", "Codex 工作区文件夹", "documents"),
             (home / "Library" / "Application Support" / "Codex", "Codex 应用数据文件夹", "app-data"),
             (home / "Library" / "Application Support" / "OpenAI" / "Codex", "Codex 应用数据文件夹", "app-data"),
@@ -422,7 +442,7 @@ def discover_nested_dirs(root: Path) -> list[Path]:
             if not path_is_dir(entry) or is_reparse_or_link(entry):
                 continue
             name = entry.name
-            if name in BUILD_DIR_NAMES:
+            if name in BUILD_DIR_NAMES or cargo_output(entry):
                 found.append(entry)
                 continue
             if name in PRUNE_DIR_NAMES:
@@ -438,6 +458,9 @@ def worktree_roots(root: Path) -> list[Path]:
     except OSError:
         return result
     for branch in first_level:
+        if path_exists(branch / ".git"):
+            result.append(branch)
+            continue
         try:
             children = [item for item in branch.iterdir() if path_is_dir(item) and not is_reparse_or_link(item)]
         except OSError:
@@ -487,7 +510,16 @@ def add_project_artifacts(
                 "env": ("运行环境目录", "可能包含你的配置；请你确认。"),
             }
             artifact_type, name_reason = labels.get(name, ("工作区旧产物", "这个文件夹位于 Codex 管理的工作区里。"))
-            if age_days < OLD_ARTIFACT_DAYS:
+            retain_download = name in DOWNLOAD_DIR_NAMES or is_download_cache_path(path)
+            if is_download_cache_path(path):
+                artifact_type = "Cargo 下载缓存"
+                name_reason = "Cargo registry/git 下载缓存，删除后需要重新下载并消耗流量。"
+            if retain_download:
+                tier = "protected"
+                reason = "依赖或环境目录，删除后可能需要重新下载、安装并消耗流量。"
+                action = "open"
+                recommendation = "默认保留；可重新下载不代表值得清理。"
+            elif age_days < OLD_ARTIFACT_DAYS:
                 tier = "protected"
                 reason = "最近修改，不能按旧产物处理；可能属于当前任务或正在使用的构建。"
                 action = "open"
@@ -495,14 +527,14 @@ def add_project_artifacts(
             else:
                 tier = "manual"
                 reason = f"{name_reason} 最近修改约 {age_days:.1f} 天前，还需要你结合项目设置和实际情况确认。"
-                action = "trash"
-                recommendation = "确认无活动进程、Git/项目状态和备份后，再移到废纸篓/回收站。"
+                action = "open"
+                recommendation = "优先核实这个旧产物：确认来源、重建命令和本地依赖，并找出同组最新完整可用版本的精确保留路径；只有一份则保留。"
             item = candidate_item(
                 user=user,
                 path=path,
                 tier=tier,
                 artifact_type=artifact_type,
-                provenance=f"位于 Codex 管理的工作区：{workspace}",
+                provenance=f"位于工作区探测范围：{workspace}；仍需用 Codex 任务/配置证据确认来源",
                 reason=reason,
                 recommendation=recommendation,
                 recovery="回收站可恢复；重建方式由项目的构建配置决定。",
@@ -510,7 +542,14 @@ def add_project_artifacts(
                 workspace_root=workspace,
                 action=action,
                 handle_check=False,
-                extra={"workspace_kind": "worktree" if ".codex/worktrees" in str(root) else "documents"},
+                extra={
+                    "workspace_kind": "worktree" if root.name == ".codex" else "documents",
+                    "review_priority": "retain-download" if retain_download else "old-artifact",
+                    "retained_path": "待核实：同组最新完整可用产物；唯一版本保留",
+                    "rebuild_command": "待查项目配置及对应源码版本",
+                    "network_cost": "可能需要重新下载" if retain_download else "未知；待核实本地依赖和工具链",
+                    "rebuild_time": "未知；未运行构建",
+                },
             )
             if item:
                 items.append(item)
@@ -655,6 +694,10 @@ def scan_root(user: dict[str, Any], root: Path, label: str, kind: str, items: li
             handle_check=True,
         )
         if item:
+            if relative == "plugins/cache":
+                item["tier"] = "protected"
+                item["recommendation"] = "默认保留插件包，避免重新下载；不计入推荐清理量。"
+                item["trash_paths"] = []
             if item["active"] is True:
                 item["tier"] = "protected"
                 item["recommendation"] = "现在还有程序正在使用，先保留；退出 Codex 后重新检查。"
@@ -796,12 +839,13 @@ def build_data() -> dict[str, Any]:
         if key not in unique or item["size_bytes"] > unique[key]["size_bytes"]:
             unique[key] = item
     items = list(unique.values())
+    items = decide_builds(items, open_handle_status)
     items.sort(key=lambda item: (item["tier"], -int(item.get("size_bytes") or 0), item["path"]))
 
     green = [item for item in items if item["tier"] == "regenerable" and item.get("trash_paths")]
     manual = [item for item in items if item["tier"] == "manual"]
     protected = [item for item in items if item["tier"] == "protected"]
-    candidate_items = green + manual
+    candidate_items = green  # Unverified/user-data items are not recommended space.
     category_totals: dict[str, dict[str, Any]] = {}
     for item in candidate_items:
         key = item["artifact_type"]
@@ -816,12 +860,12 @@ def build_data() -> dict[str, Any]:
         roots = user.get("codex_roots") or []
         codex_bytes = sum(int(root.get("size_bytes") or 0) for root in roots)
         user_items = [item for item in items if item["user"] == user["user"] and item["home"] == user["home"]]
-        candidate_bytes = sum(int(item.get("size_bytes") or 0) for item in user_items if item["tier"] in {"regenerable", "manual"})
+        candidate_bytes = sum(int(item.get("size_bytes") or 0) for item in user_items if item["tier"] == "regenerable")
         user["codex_bytes"] = codex_bytes
         user["codex_size"] = human_bytes(codex_bytes)
         user["candidate_bytes"] = candidate_bytes
         user["candidate_size"] = human_bytes(candidate_bytes)
-        user["candidate_count"] = sum(1 for item in user_items if item["tier"] in {"regenerable", "manual"})
+        user["candidate_count"] = sum(1 for item in user_items if item["tier"] == "regenerable")
         user["protected_size"] = human_bytes(max(codex_bytes - candidate_bytes, 0))
         user["status"] = (
             "不可读取" if not user["readable"]
@@ -832,6 +876,8 @@ def build_data() -> dict[str, Any]:
     codex_bytes = sum(int(user.get("codex_bytes") or 0) for user in users)
     candidate_bytes = sum(int(item.get("size_bytes") or 0) for item in candidate_items)
     green_bytes = sum(int(item.get("size_bytes") or 0) for item in green)
+    build_items = [item for item in green if item.get("review_priority") == "delete-old-build"]
+    build_bytes = sum(item["size_bytes"] for item in build_items)
     manual_bytes = sum(int(item.get("size_bytes") or 0) for item in manual)
     protected_bytes = sum(int(item.get("size_bytes") or 0) for item in protected)
     timeline_buckets: dict[str, int] = {}
@@ -895,6 +941,9 @@ def build_data() -> dict[str, Any]:
             "candidate_bytes": candidate_bytes,
             "candidate_size": human_bytes(candidate_bytes),
             "regenerable_bytes": green_bytes,
+            "old_build_bytes": build_bytes,
+            "old_build_count": len(build_items),
+            "secondary_bytes": green_bytes - build_bytes,
             "regenerable_size": human_bytes(green_bytes),
             "manual_bytes": manual_bytes,
             "manual_size": human_bytes(manual_bytes),
@@ -905,17 +954,17 @@ def build_data() -> dict[str, Any]:
             "manual_count": len(manual),
             "protected_count": len(protected),
             "overview": (
-                f"本次只展示 Codex 生成或管理的文件：共 {len(candidate_items)} 项，占用 {human_bytes(candidate_bytes)}；"
-                f"其中 {len(green)} 项删掉后会重新生成，{len(manual)} 项需要你先看一下。"
+                f"建议清理旧构建 {len(build_items)} 项，{human_bytes(build_bytes)}；每项目保留最新一份。"
+                f"次选缓存 {human_bytes(green_bytes - build_bytes)}；未确认或用户数据 {human_bytes(manual_bytes)}。"
             ),
             "priority": [
-                "先看清单里的具体位置；工作区、worktree 或 Documents/Codex 文件夹本身不会当成删除对象。",
+                "优先删除已确认可从源码重建的大型旧产物，每项目保留最新一份；不同分支不重复保留。",
                 "处理归档会话、崩溃报告和工作区里的旧产物前，先关闭相关程序、做好备份，并确认项目状态。",
                 "只有你明确同意后，才会把具体文件夹移到废纸篓/回收站；生成报告不会改变文件。",
             ],
             "long_term": [
-                "对于占用空间较大的项目，按用户、项目、配置和平台保留一份可以重新生成的文件，避免误删正在使用的构建文件。",
-                "定期清理已经确认的 Codex 应用缓存和临时文件；归档会话和用户自己的输出请单独备份。",
+                "每用户每项目保留最新一份构建目录，正在使用或明确指定保留的目录额外保留。",
+                "默认保留 Cargo 下载缓存、依赖环境、工具链和插件包，避免反复下载；低成本缓存仅为次选。",
             ],
         },
         "ledger_meta": {
@@ -923,11 +972,14 @@ def build_data() -> dict[str, Any]:
             "old_artifact_days": OLD_ARTIFACT_DAYS,
             "issues": issues,
             "inspection_only": True,
+            "recommendation_review_pending": any(item.get("review_error") for item in items),
         },
         # The child server uses these homes for containment checks.  It never
         # treats a home itself as an action target.
         "allowed_user_homes": [user["home"] for user in users if user["readable"]],
     }
+    payload['cleanup_options'] = option_totals(items)
+    payload['chat_report'] = render_chat_report(payload)
     return payload
 
 
@@ -964,6 +1016,8 @@ def main() -> int:
         "manual_count": payload["summary"]["manual_count"],
         "protected_count": payload["summary"]["protected_count"],
         "issues": len(payload["ledger_meta"]["issues"]),
+        "cleanup_options": payload["cleanup_options"],
+        "chat_report": payload["chat_report"],
     }, ensure_ascii=False, indent=2))
     return 0
 

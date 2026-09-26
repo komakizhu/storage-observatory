@@ -1,11 +1,11 @@
 ---
 name: codex-storage-cleanup
-description: "Cross-platform, multi-user inspection and cleanup of Codex-generated storage on macOS and Windows, prioritizing large obsolete local build artifacts in Codex-created Documents/Codex, Documents/ChatGPT workspaces and worktrees, retaining the latest usable build per group and preserving download caches by default. Use when auditing or cleaning Codex disk usage; preserve workspace roots and source projects, produce an evidence-backed candidate list first, prefer Trash or Recycle Bin, and require explicit authorization before moving or deleting anything."
+description: "Audit, clean, back up, offload, and restore Codex storage. Scan readable local users on macOS or Windows, prioritize old verified build artifacts while keeping each project's latest build and download caches, and require scoped authorization for disposal. On mac2, optionally use verified T7_1T snapshots and exact-path cache, archive, or reviewed-output operations."
 ---
 
 # Codex Storage Cleanup
 
-Use this skill to audit and clean Codex-generated storage for every readable local user on macOS or Windows. Read [the full SOP](references/codex-storage-cleanup-sop.md) before inspecting or proposing a concrete operation, and read the sections relevant to the current platform and candidate type. Preserve each workspace and worktree root; this skill handles old artifacts inside them, not removal of the workspace itself. This child skill is maintained inside the main `storage-observatory` skill tree and shares its visual/reporting rules.
+Use this skill as the single entry point for Codex storage audit, cleanup, verified backup, offload, and restore. For an unrestricted audit, cover every readable local user on macOS or Windows; when the user specifies an account or paths, stay within that scope and report other users only if relevant. Read [the full SOP](references/codex-storage-cleanup-sop.md) before inspecting or proposing a concrete operation. For T7_1T snapshots or mac2-specific operations, also read [the vault operations reference](references/t7-vault-operations.md) and inspect `python3 scripts/vault.py --help`. Preserve each workspace and worktree root. This child skill shares the main `storage-observatory` visual/reporting rules.
 
 ## Default recommendation: old local artifacts first
 
@@ -22,7 +22,7 @@ Read SOP §4 and §7 for retention evidence and §8 for the decision table. The 
 
 ## Scope
 
-- Cover all readable, non-system local user profiles rather than assuming the current user or mac2. Record the platform, user, home directory, Codex roots, ownership, permissions, and inaccessible profiles.
+- For an unrestricted audit, cover all readable, non-system local user profiles rather than assuming the current user or mac2. For a scoped request, inspect the named account and paths; do not modify another account merely because it is readable. Record the platform, user, home directory, Codex roots, ownership, permissions, and inaccessible profiles within scope.
 - Inspect Codex roots plus only those Documents or application-data directories with evidence that Codex created or manages them. Never treat an entire Documents, Downloads, user home, C:\Users, or disk as a Codex cleanup target.
 - Include archived or demonstrably closed sessions, Codex caches, logs, temporary files, and old complete regenerable artifacts inside confirmed Codex worktrees or Codex-created Documents workspaces. Keep workspace/worktree roots, source, Git metadata, and user outputs protected.
 - Use provenance, ownership, active-process/open-handle checks, Git status, configuration/metadata, and content inspection. Age, size, or a name such as cache, build, or dist is not enough.
@@ -35,6 +35,7 @@ Read SOP §4 and §7 for retention evidence and §8 for the decision table. The 
 - For another user, inspect only what the OS permits; do not use elevation or permissions changes merely to bypass uncertainty. Report inaccessible profiles and stop on protected or ambiguous data.
 - Treat workspace/worktree roots, active sessions, running tasks, open files, uncommitted or unknown project data, source code, user documents, settings, credentials, databases, lock files, and system snapshots as protected.
 - Never empty Trash/Recycle Bin, delete APFS/Time Machine/Windows recovery data, or use broad recursive deletion against unresolved paths.
+- A request to merge or edit this skill, scan, back up, or ask about recoverable space is not disposal authorization. Neither a script allowlist nor an earlier recommendation authorizes a new path. Revalidate the exact scope and method before action.
 
 ## Required workflow
 
@@ -51,6 +52,7 @@ Read SOP §4 and §7 for retention evidence and §8 for the decision table. The 
 - For caches, logs, and temporary files, confirm Codex ownership, non-critical content, no active use, and regeneration before proposing permanent deletion.
 - For artifacts inside Documents workspaces, require strong Codex provenance for both the parent and child path, no active use, and path-level confirmation. Preserve source, user documents, and the workspace root; do not require a clean Git tree to delete a separately verified generated artifact, but never delete mixed or ambiguous content.
 - For worktrees and build artifacts, group by user/project, retain the latest completed directory, and remove complete confirmed older artifact directories only; do not delete the worktree root or hand-delete internal object or incremental files.
+- Treat `visualizations`, task `outputs`, unique exports, and archived conversations as user data. For mac2 T7_1T offload or restore, follow [the vault reference](references/t7-vault-operations.md): verify the designated volume, snapshot and content digest, explain path availability after offload, and require exact-path authorization before any local removal. The mac2-only `vault.py` commands do not define cross-platform policy.
 
 ## Report presentation
 
@@ -90,3 +92,5 @@ python3 "$CHILD_SKILL_ROOT/scripts/serve_codex_report.py" --workspace <scratch-w
 ```
 
 The scanner writes `work/storage-analysis-live.json` and the builder writes `outputs/codex-storage-cleanup-report.html`. The child report imports the main `存储观察站` CSS/visual tokens at build time, but its page content is Codex-only: users and roots, archived sessions, Codex application diagnostics/cache, old workspace/worktree artifacts, exact-path evidence, protected context, and authorization state. The child server uses a fresh local token and an allowlist derived from the ledger, supports only exact `open` and reversible `trash` actions, and never acts during scanning or report generation.
+
+The scanner and report server do not perform T7 snapshots, offloads, restores, or vault cache purges. Those are separate, explicit `scripts/vault.py` commands after the corresponding checks and authorization in the vault reference.

@@ -1,4 +1,4 @@
 interface:
   display_name: "Codex 全面存储清理"
-  short_description: "在 Codex 中对比旧构建清理容量，默认保留最新一份与下载缓存"
-  default_prompt: "Use $codex-storage-cleanup to inspect Codex storage and report recommendations inline in Codex. Verify rebuildable outputs from source and compare space recoverable by keeping the latest build per project versus removing all verified builds. Keep download caches by default, report chat history and image caches or outputs separately, and remove only authorized exact paths."
+  short_description: "盘点并清理 Codex 存储，按需验证备份到 T7 和恢复"
+  default_prompt: "Use $codex-storage-cleanup to inspect Codex storage and report recommendations inline in Codex. Verify rebuildable outputs from source and compare space recoverable by keeping the latest build per project versus removing all verified builds. Keep download caches by default, report chat history and image outputs separately, and act only on authorized exact paths. For mac2 T7 snapshots, offload, or restore, follow the vault operations reference."

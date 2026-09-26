@@ -17,7 +17,7 @@ compatibility: Python 3 标准库；报告层跨平台，扫描与文件管理�
 
 ## Codex 存储清理子 skill
 
-当用户明确要检查或清理 Codex 生成的会话、缓存、日志、临时文件、工作区内旧构建产物或其他 Codex 管理的数据时，读取并使用 [Codex 存储清理子 skill](subskills/codex-storage-cleanup/SKILL.md)。子 skill 与本主 skill 放在同一套源代码中，共用这里的数据口径、权限边界、本地服务规则和 Lieflat Charts Wire 视觉方案；它的报告内容只展示 Codex 相关对象，不把整个 Documents、用户主目录或磁盘当成清理目标。
+当用户明确要检查、清理、备份、转存或恢复 Codex 生成或管理的数据时，读取并使用 [Codex 存储清理子 skill](subskills/codex-storage-cleanup/SKILL.md)。它统一包含跨用户盘点、旧构建建议及 mac2 T7_1T 验证快照与恢复流程，共用本主 skill 的数据口径、权限边界、本地服务规则和 Lieflat Charts Wire 视觉方案；报告只展示 Codex 相关对象，不把整个 Documents、用户主目录或磁盘当成清理目标。
 
 仅检查或清理 Codex 时，按子 skill 的扫描和报告流程执行，不启动下面的全盘快照与浏览器流程。默认直接在 Codex 对话中报告：旧构建“每个项目只留最新一份”和“全部已验证构建都删”分别可回收多少 GB、两者相差多少；下载缓存默认保留，会话与图片缓存、图片成品分别说明。
 

@@ -89,7 +89,7 @@ Lieflat Charts 本机来源目录附带 PolyForm Noncommercial License 1.0.0。�
 
 清理清单不是“全盘都能删”的列表，而是把确实存在处理决策的项目分成三类：可自动清理、需人工判断、谨慎清理。每项显示总占用、比例条、内容说明和适合的下一步。服务模式下，纯缓存可以移到废纸篓；需要判断的项目优先打开位置；系统文件、应用核心数据和不明确项目不会被后台直接删除。
 
-针对 Codex 自己生成或管理的内容，使用同仓库内的 [Codex 存储清理子 skill](subskills/codex-storage-cleanup/SKILL.md)。默认直接在 Codex 对话中展示建议，对比已验证构建“每个项目只留最新一份”和“全部删除”各可回收多少 GB；下载缓存默认保留，会话、图片缓存和图片成品分别报告。需要 HTML 时才使用共用的视觉方案。扫描范围包括 Codex 管理的数据，以及 Documents/Codex、Documents/ChatGPT 等工作区内已确认的构建产物。
+针对 Codex 自己生成或管理的内容，使用同仓库内的 [Codex 存储清理子 skill](subskills/codex-storage-cleanup/SKILL.md)。它也包含 mac2 的 T7_1T 验证快照、转存与恢复操作，详见 [vault 操作说明](subskills/codex-storage-cleanup/references/t7-vault-operations.md)。默认直接在 Codex 对话中展示建议，对比已验证构建“每个项目只留最新一份”和“全部删除”各可回收多少 GB；下载缓存默认保留，会话、图片缓存和图片成品分别报告。需要 HTML 时才使用共用的视觉方案。扫描范围包括 Codex 管理的数据，以及 Documents/Codex、Documents/ChatGPT 等工作区内已确认的构建产物。
 
 ## 怎么用
 
@@ -182,6 +182,7 @@ $WORKSPACE/
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── references/codex-storage-cleanup-sop.md
+    ├── references/t7-vault-operations.md
     └── scripts/
 ~~~
 

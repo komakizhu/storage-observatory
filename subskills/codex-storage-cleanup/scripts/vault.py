@@ -38,6 +38,113 @@ ONLINE_BROWSER_CACHE_SUBDIRS = (
 CODEX_LOG_ROOT = Path('/Users/mac2/Library/Logs/com.openai.codex')
 CHATGPT_APP_BACKUP = Path('/Users/mac2/Documents/Codex/2026-08-31/x20-it-s-a/work/backups/chatgpt-app-20260901-003722')
 REVIEWED_OUTPUTS = {
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/outfit-2-selected-3"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/outfit-2-selected-3-v2"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/outfit-2-selected-3-12.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/outfit-2-selected-3-v2-12.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing.zip"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/md-1-rag-2-flx4-3/work/五项目交接包/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260714"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/md-1-rag-2-flx4-3/work/源码完整交接包/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260714"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260714"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/md-1-rag-2-flx4-3/work/五项目交接包/W4DJ PR/W4DJ-RKB/src-tauri/binaries"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/md-1-rag-2-flx4-3/work/五项目交接包/W4DJ PR/w4dj-rkb-legacy/src-tauri/binaries"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/md-1-rag-2-flx4-3/work/源码完整交接包/W4DJ PR/W4DJ-RKB/src-tauri/binaries"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/md-1-rag-2-flx4-3/work/源码完整交接包/W4DJ PR/w4dj-rkb-legacy/src-tauri/binaries"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/release-20260719T155823.584275Z-279de82e4301"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v1"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v2"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v3"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v4"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v5"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v6"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v7"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v8"),
+    Path("/Users/mac2/Documents/Codex/2026-07-15/rag-philo-rag-handoff-20260715-md/rag-https-paulnaeger-org-sep-rag/work/real-pilot-20260718-expanded/data/releases/real-pilot-20260714-v9"),
+    Path("/Users/mac2/Documents/ChatGPT/mono color海报/outputs"),
+    Path("/Users/mac2/.codex/worktrees/a1fe/W4DJ-RKB-task-20260912/test-artifacts"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/pose-references"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/pose-references-50.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/photo-pose-batch"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-candidates"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-candidates-30.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/outfit-2-combinations"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/outfit-2-combinations-20.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-v2"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-v3"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-v4"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-v5"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-v6"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-v7"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing-v2.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing-v3.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing-v4.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing-v5.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing-v6.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键动作/outputs/clothing-custom-5/approved-all-clothing-v7.zip"),
+    Path("/Users/mac2/Documents/ChatGPT/一键桌宠/outputs/real-desktop-pet"),
+    Path("/Users/mac2/Documents/ChatGPT/Open Logi 修改/work/cargo-home"),
+    Path("/Users/mac2/Documents/ChatGPT/Open Logi 修改/work/rustup-home"),
+    Path("/Users/mac2/Documents/ChatGPT/老厉害频道长期监控/monitor/runtime/downloads/1O7qAXpDb1c/102 - 「观众投稿分享」20260901：IT行业、物流行业、白酒行业、商务KTV行业、县城体制内、城市体制内观众投稿分享 [1O7qAXpDb1c].f616.mp4"),
+    Path("/Users/mac2/Documents/ChatGPT/老厉害频道长期监控/验收样本/instagram-cristiano/media/001 - More than a fragrance, a way of life [3972372237689994734].mp4"),
+    Path("/Users/mac2/Documents/ChatGPT/老厉害频道长期监控/验收样本/tiktok-khaby-lame/media/001 - Well… that didn’t go as planned [7681719358225239326].mp4"),
+    Path("/Users/mac2/Documents/ChatGPT/老厉害频道长期监控/验收样本/youtube-mrbeast/media/001 - Escape 100 Cops, Win $500,000 [Qtl8lJwbd4g].mp4"),
+    Path('/Users/mac2/.codex/visualizations/2026/09/03/w4dj-five-short-smoke-PyoSv9'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/03/w4dj-five-short-smoke-throttled-rj6Wfm'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/03/w4dj-five-song-acceptance-FYY2xi'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-default-webgl-jgms49'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-1patch-V1MTTz'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-1patch-final-m6dnE0'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-4patch-default-K4aqfz'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-4patch-eyNuVU'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-final-cV0PJ2'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-final-wWlY49'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-fixed-qg6zhE'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-flat-output-NYBtYB'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-short-smoke-fourpatch-flat-BbOSAl'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-acceptance-EOEZ4k'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-acceptance-FlzS6Q'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-acceptance-KtTDEl'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-acceptance-hgOZ5P'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-acceptance-uF5zu2'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-cpu-xGuH6F'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-isolated-smoke-20260904'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-isolated-smoke-20260904-v2'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-five-song-rerun-Xmheup'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-fixed-GizdQT'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-profile-bxprZr'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-smoke-copyfix-SjaMNZ'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-smoke-default-MmdBB9'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-smoke-default-Sc1j7c'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-smoke-gOnmzz'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-one-short-webgl-bZ23oV'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-cpu-1patch-Go8mk4'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-cpu-J1g0Q4'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-cpu-fixed-jppMdX'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-smoke-C8kjQo'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-smoke-JUZieQ'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-smoke-ZPrKyz'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-short-smoke-pHXxtZ'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-two-song-repro-20260904'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-fixed-8XvsTT'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-4hG3Jg'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-6WRGXe'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-8XFO5T'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-8mfnxm'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-Cq0nvc'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-E0j1Fk'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-I8C9nF'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-JVh4xH'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-L8Mbnv'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-P9tCme'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-R7904n'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-afGqaM'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-protZ5'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-tuT9DX'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-xQhorB'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-ultrashort-smoke-zosd7J'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/05/w4dj-300-short-isolated-20260905-v4'),
+    Path('/Users/mac2/.codex/visualizations/2026/09/05/w4dj-five-song-sqlite-smoke-20260905'),
     Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-300-short-acceptance-20260904'),
     Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-300-short-isolated-20260904-v2'),
     Path('/Users/mac2/.codex/visualizations/2026/09/04/w4dj-300-short-isolated-20260904-v3'),
@@ -81,7 +188,7 @@ def exact_path(value: str) -> Path:
     return path
 
 
-def signature(root: Path) -> dict:
+def signature(root: Path, *, finder_metadata_keep=None) -> dict:
     if root.is_symlink():
         raise VaultError(f"root is a symlink: {root}")
     if not root.exists():
@@ -107,7 +214,12 @@ def signature(root: Path) -> dict:
             totals["dirs"] += 1
             feed("dir", relative)
             for child in sorted(path.iterdir(), key=lambda item: os.fsencode(item.name)):
-                visit(child, relative / child.name)
+                child_relative = relative / child.name
+                if (finder_metadata_keep is not None and child.name == '.DS_Store'
+                        and child.is_file() and not child.is_symlink()
+                        and str(child_relative) not in finder_metadata_keep):
+                    continue
+                visit(child, child_relative)
         elif stat.S_ISREG(mode):
             totals["files"] += 1
             size = path.stat().st_size
@@ -151,8 +263,24 @@ def verify_snapshot(snapshot_id: str) -> tuple[Path, dict]:
     folder, manifest = load_snapshot(snapshot_id)
     actual = signature(folder / "payload")
     if actual != manifest.get("signature"):
-        raise VaultError(f"snapshot content verification failed: {snapshot_id}")
+        # Finder can add .DS_Store files to a mounted APFS snapshot after the
+        # exact copy was verified. Accept only that addition, never changed data.
+        without_finder_files = signature(
+            folder / "payload",
+            finder_metadata_keep=set(manifest.get('finder_metadata_paths', [])),
+        )
+        if without_finder_files != manifest.get("signature"):
+            raise VaultError(f"snapshot content verification failed: {snapshot_id}")
     return folder, manifest
+
+
+def source_matches_snapshot(source: Path, manifest: dict) -> bool:
+    if signature(source) == manifest['signature']:
+        return True
+    return signature(
+        source,
+        finder_metadata_keep=set(manifest.get('finder_metadata_paths', [])),
+    ) == manifest['signature']
 
 
 def copy_exact(source: Path, destination: Path) -> None:
@@ -190,7 +318,10 @@ def backup(args: argparse.Namespace) -> None:
         raise VaultError("source must be an existing non-symlink file or directory")
     if source.stat().st_dev == DISK.stat().st_dev:
         raise VaultError("source is already on the designated SSD")
-    before = signature(source)
+    # Finder metadata can be rewritten while a mounted folder is copied.
+    # It is not user content, so new snapshots exclude it on both volumes.
+    finder_keep = set()
+    before = signature(source, finder_metadata_keep=finder_keep)
     available = shutil.disk_usage(DISK).free
     if before["bytes"] > available:
         raise VaultError("insufficient free space for this snapshot")
@@ -203,10 +334,10 @@ def backup(args: argparse.Namespace) -> None:
     stage.mkdir()
     try:
         copy_exact(source, stage / "payload")
-        after = signature(source)
-        copied = signature(stage / "payload")
+        after = signature(source, finder_metadata_keep=finder_keep)
+        copied = signature(stage / "payload", finder_metadata_keep=finder_keep)
         if before != after or before != copied:
-            raise VaultError("source changed during copy or copied content differs")
+            raise VaultError(f"source changed during copy or copied content differs: before={before}, after={after}, copied={copied}")
         check_disk()
         manifest = {
             "id": snapshot_id,
@@ -215,6 +346,7 @@ def backup(args: argparse.Namespace) -> None:
             "created_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
             "volume_uuid": EXPECTED_UUID,
             "signature": copied,
+            "finder_metadata_paths": sorted(finder_keep),
         }
         (stage / "manifest.json").write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -222,7 +354,10 @@ def backup(args: argparse.Namespace) -> None:
         os.rename(stage, snapshot_dir(snapshot_id))
     except Exception:
         if stage.exists():
-            shutil.rmtree(stage)
+            try:
+                shutil.rmtree(stage)
+            except OSError as cleanup_error:
+                print(f"WARNING: incomplete snapshot stage remains at {stage}: {cleanup_error}", file=sys.stderr)
         raise
     print(json.dumps({"snapshot_id": snapshot_id, "path": str(snapshot_dir(snapshot_id)), **copied}, ensure_ascii=False))
 
@@ -247,7 +382,7 @@ def evict(args: argparse.Namespace) -> None:
         raise VaultError("source resolves outside the current user's home")
     if source.stat().st_dev == DISK.stat().st_dev:
         raise VaultError("source is already on the designated SSD")
-    if signature(source) != manifest["signature"]:
+    if not source_matches_snapshot(source, manifest):
         raise VaultError("source differs from the verified snapshot; refusing eviction")
     check_disk()
     require_not_open(source)
@@ -294,7 +429,7 @@ def evict_archives(args: argparse.Namespace) -> None:
     snapshot_files = archive_files(payload)
     if [path.name for path in files] != [path.name for path in snapshot_files]:
         raise VaultError('live archive names changed since backup')
-    if signature(source) != manifest['signature']:
+    if not source_matches_snapshot(source, manifest):
         raise VaultError('live archives changed since backup')
     require_not_open(source)
     check_disk()
@@ -317,7 +452,7 @@ def offload_user_backup(args: argparse.Namespace) -> None:
         raise VaultError('source does not match the non-symlink backup directory in the snapshot')
     if source.stat().st_uid != os.getuid() or source.stat().st_dev == DISK.stat().st_dev:
         raise VaultError('source owner or volume is unexpected')
-    if signature(source) != manifest['signature']:
+    if not source_matches_snapshot(source, manifest):
         raise VaultError('source changed since the verified snapshot')
     require_not_open(source)
     check_disk()
@@ -334,7 +469,7 @@ def offload_reviewed_output(args: argparse.Namespace) -> None:
         raise VaultError('source does not match the non-symlink file or directory in the snapshot')
     if source.stat().st_uid != os.getuid() or source.stat().st_dev == DISK.stat().st_dev:
         raise VaultError('source owner or volume is unexpected')
-    if signature(source) != manifest['signature']:
+    if not source_matches_snapshot(source, manifest):
         raise VaultError('source changed since the verified snapshot')
     if source.is_dir():
         require_not_open(source)
@@ -488,8 +623,14 @@ def restore(args: argparse.Namespace) -> None:
         raise VaultError("destination parent does not exist")
     check_disk()
     copy_exact(snapshot_dir(args.snapshot_id) / "payload", destination)
-    if signature(destination) != manifest["signature"]:
-        raise VaultError(f"restored content differs; inspect partial destination: {destination}")
+    restored = signature(destination)
+    if restored != manifest["signature"]:
+        restored = signature(
+            destination,
+            finder_metadata_keep=set(manifest.get('finder_metadata_paths', [])),
+        )
+        if restored != manifest["signature"]:
+            raise VaultError(f"restored content differs; inspect partial destination: {destination}")
     print(json.dumps({"restored": str(destination), "snapshot_id": args.snapshot_id, **manifest["signature"]}, ensure_ascii=False))
 
 

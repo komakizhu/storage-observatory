@@ -58,6 +58,8 @@ Read SOP §4 and §7 for retention evidence and §8 for the decision table. The 
 
 Report directly in the Codex conversation by default. The user should be able to compare options without opening HTML, a file, or a browser. Use a compact table followed by one recommendation; show detailed paths/build evidence only below it or when requested. HTML is an optional supplement, not the primary delivery.
 
+For every space-recovery estimate, first apply [SOP §8, “统计口径与目标差额”](references/codex-storage-cleanup-sop.md): name the account, scan time, physical volume, included non-overlapping local roots, measurement method and unit. If the request is local-only, exclude existing T7 contents from both the baseline and recoverable total; T7 is only a possible backup destination. Do not silently reuse an older total with different roots or units. Separate measured directory occupancy, immediately reclaimable verified artifacts, conditional offloads of user data, protected/in-use data, and the actual free-space change after action. Show the arithmetic and remaining gap for a user-specified target; never count an active output or two alternative build plans as immediately reclaimable.
+
 Use these categories and wording (replace placeholders with measured values):
 
 | 类别 | 可清理多少 | 默认建议 |

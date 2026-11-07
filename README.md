@@ -89,7 +89,7 @@ Lieflat Charts 本机来源目录附带 PolyForm Noncommercial License 1.0.0。�
 
 清理清单不是“全盘都能删”的列表，而是把确实存在处理决策的项目分成三类：可自动清理、需人工判断、谨慎清理。每项显示总占用、比例条、内容说明和适合的下一步。服务模式下，纯缓存可以移到废纸篓；需要判断的项目优先打开位置；系统文件、应用核心数据和不明确项目不会被后台直接删除。
 
-针对 Codex 自己生成或管理的内容，使用同仓库内的 [Codex 存储清理子 skill](subskills/codex-storage-cleanup/SKILL.md)。它也包含 mac2 的 T7_1T 验证快照、转存与恢复操作，详见 [vault 操作说明](subskills/codex-storage-cleanup/references/t7-vault-operations.md)。默认直接在 Codex 对话中展示建议，对比已验证构建“每个项目只留最新一份”和“全部删除”各可回收多少 GB；下载缓存默认保留，会话、图片缓存和图片成品分别报告。需要 HTML 时才使用共用的视觉方案。扫描范围包括 Codex 管理的数据，以及 Documents/Codex、Documents/ChatGPT 等工作区内已确认的构建产物。
+针对 Codex 自己生成或管理的内容，使用独立安装的 [Codex 存储清理 Skill](https://github.com/komakizhu/codex-storage-cleanup)。主仓库中的 `subskills/codex-storage-cleanup` 只保留旧路径兼容入口，不再包含扫描器、报告生成器、清理器或备份工具。Codex 专项扫描、报告与每日只读自动化均以独立 Skill 为准；只检查或清理 Codex 时，不启动本 Skill 的全盘快照和浏览器流程。
 
 ## 怎么用
 
@@ -179,14 +179,12 @@ $WORKSPACE/
 ├── references/windows.md
 ├── references/linux.md
 └── subskills/codex-storage-cleanup/
-    ├── SKILL.md
+    ├── SKILL.md                  # 旧路径转发入口
     ├── agents/openai.yaml
-    ├── references/codex-storage-cleanup-sop.md
-    ├── references/t7-vault-operations.md
-    └── scripts/
+    └── references/codex-storage-cleanup-sop.md  # 规范位置说明
 ~~~
 
-当前是独立调试工作区中的 beta 版本，尚未建立 Git fork、远端或发布包。修改报告时应优先保持以下约定：一次启用一次快照；历史趋势最多六点；图表进入可视区域后再播放且不重复播放；保留 prefers-reduced-motion 降级；保持 #43593B 表示好的变化、#F5572F 表示不好的变化，中文说明文字使用中性黑色。
+当前存储观察站版本为 `1.0.1`。Codex 存储清理作为独立 Skill 单独维护和发布。修改本仓库报告时继续保持以下约定：一次启用一次快照；历史趋势最多六点；图表进入可视区域后再播放且不重复播放；保留 prefers-reduced-motion 降级；保持 #43593B 表示好的变化、#F5572F 表示不好的变化，中文说明文字使用中性黑色。
 
 ## 版本状态
 
